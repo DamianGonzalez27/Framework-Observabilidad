@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "logger-tracker"
-version = "1.0.12"
+version = "1.0.13"
 description = "Libreria estandar para manejo de logs estandar"
 authors = ["damian27goa@gmail.com"]
 readme = "README.md"
