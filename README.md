@@ -109,7 +109,7 @@ def health():
 ## 📡 Exportación de datos (OTLP)
 Por defecto, los datos se envían al endpoint definido en OTEL_EXPORTER_OTLP_ENDPOINT. Puedes usar un OpenTelemetry Collector o enviar directamente a:
 | Backend	| Endpoint ejemplo |
-|-------------------------------|
+|-----------|------------------|
 | Datadog	| https://api.datadoghq.com + header dd-api-key |
 | Jaeger	| http://jaeger:4317 |
 | Grafana Cloud	| https://otlp-gateway-prod-us-central-0.grafana.net/otlp |
@@ -212,7 +212,7 @@ def get_cache(key):
 ### 🛠️ Variables de entorno completas
 
 | Variable	| Descripción	| Default |
-|-------------------------------------|
+|-----------|---------------|---------|
 | OTEL_SERVICE_NAME	| Nombre del servicio (obligatorio para tracing)	| "unknown_service" |
 | OTEL_EXPORTER_OTLP_ENDPOINT	| Endpoint OTLP (gRPC) para exportar trazas, métricas y logs	| None (consola) |
 | LOG_LEVEL	| Nivel de logging (DEBUG, INFO, WARNING, ERROR)	| INFO |
