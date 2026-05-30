@@ -1,0 +1,96 @@
+name: CI/CD
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - '*'
+  pull_request:
+    branches:
+      - main
+
+env:
+  POETRY_VERSION: "2.1.4"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+    container: python:3.13-slim
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar herramientas base
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry==$POETRY_VERSION
+          poetry config virtualenvs.create false
+
+      - name: Cache de dependencias
+        uses: actions/cache@v4
+        with:
+          path: |
+            .cache/pip
+            .cache/poetry
+          key: ${{ runner.os }}-cache-${{ hashFiles('poetry.lock') }}
+
+      - name: Instalar proyecto
+        run: poetry install
+
+      - name: Ejecutar tests
+        run: poetry run pytest
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+    container: python:3.13-slim
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar herramientas base
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry==$POETRY_VERSION
+          poetry config virtualenvs.create false
+
+      - name: Cache de dependencias
+        uses: actions/cache@v4
+        with:
+          path: |
+            .cache/pip
+            .cache/poetry
+          key: ${{ runner.os }}-cache-${{ hashFiles('poetry.lock') }}
+
+      - name: Construir paquete
+        run: poetry build
+
+      - name: Guardar artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 7
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    environment:
+      name: pypi
+      url: https://pypi.org/project/logger-tracker/
+    container: python:3.13-slim
+    steps:
+      - uses: actions/checkout@v4
+      - name: Instalar Poetry
+        run: pip install poetry==$POETRY_VERSION
+
+      - name: Descargar artefacto
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publicar en PyPI
+        run: poetry publish --username __token__ --password ${{ secrets.PYPI_TOKEN }}

@@ -1,0 +1,52 @@
+default:
+  image: python:3.13-slim
+
+stages:
+  - test
+  - build
+  - deploy
+
+variables:
+  POETRY_VERSION: "2.1.4"
+
+cache:
+  paths:
+    - .cache/pip
+    - .cache/poetry
+
+before_script:
+  - python -m pip install --upgrade pip
+  - pip install poetry==$POETRY_VERSION
+  - poetry config virtualenvs.create false
+
+test:
+  stage: test
+  script:
+    - poetry install
+    - poetry run pytest
+  only:
+    - merge_requests
+    - main
+    - tags
+
+build:
+  stage: build
+  script:
+    - poetry build
+  artifacts:
+    paths:
+      - dist/
+    expire_in: 1 week
+  only:
+    - main
+    - tags
+
+deploy:
+  stage: deploy
+  script:
+    - poetry publish --username __token__ --password $PYPI_TOKEN
+  dependencies:
+    - build
+  only:
+    - tags
+  when: manual
